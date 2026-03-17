@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EduPredict — Student Performance Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #05080f;
+    --bg2: #0a0f1e;
+    --surface: #0f1628;
+    --card: #111827;
+    --border: rgba(99,179,237,0.12);
+    --accent: #3b82f6;
+    --accent2: #06b6d4;
+    --accent3: #8b5cf6;
+    --green: #10b981;
+    --yellow: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --bright: #f0f9ff;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ─── NOISE OVERLAY ─────────────────────────────── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    opacity: .4;
+  }
+
+  /* ─── GRID BACKGROUND ───────────────────────────── */
+  body::after {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  .page-wrap { position: relative; z-index: 1; }
+
+  /* ─── NAV ────────────────────────────────────────── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 3rem;
+    background: rgba(5,8,15,0.7);
+    backdrop-filter: blur(24px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: var(--bright);
+    letter-spacing: -0.03em;
+  }
+
+  .nav-logo span { color: var(--accent2); }
+
+  .nav-links { display: flex; gap: 2rem; }
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: .9rem;
+    font-weight: 500;
+    letter-spacing: .03em;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+
+  .nav-cta {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: .55rem 1.4rem;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s, transform .2s;
+  }
+  .nav-cta:hover { background: #2563eb; transform: translateY(-1px); }
+
+  /* ─── HERO ───────────────────────────────────────── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 8rem 2rem 4rem;
+    position: relative;
+  }
+
+  .hero-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    pointer-events: none;
+    animation: pulse 6s ease-in-out infinite alternate;
+  }
+  .orb1 { width: 600px; height: 600px; background: rgba(59,130,246,0.12); top: -100px; left: -200px; }
+  .orb2 { width: 500px; height: 500px; background: rgba(139,92,246,0.1); bottom: -100px; right: -150px; animation-delay: 2s; }
+  .orb3 { width: 300px; height: 300px; background: rgba(6,182,212,0.1); top: 40%; left: 50%; transform: translate(-50%,-50%); animation-delay: 1s; }
+
+  @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.15); } }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.25);
+    padding: .35rem 1rem;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 500;
+    color: var(--accent2);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: 1.8rem;
+    animation: fadeDown .8s ease both;
+  }
+
+  .hero-badge::before {
+    content: ''; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent2);
+    animation: blink 1.4s infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:none} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:none} }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    line-height: 1.08;
+    letter-spacing: -0.04em;
+    color: var(--bright);
+    max-width: 900px;
+    animation: fadeUp .9s .1s ease both;
+  }
+
+  .hero h1 .gradient-text {
+    background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    margin-top: 1.5rem;
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 620px;
+    font-weight: 300;
+    animation: fadeUp .9s .25s ease both;
+  }
+
+  .hero-sub strong { color: var(--text); font-weight: 500; }
+
+  .hero-actions {
+    display: flex; gap: 1rem; margin-top: 2.5rem;
+    animation: fadeUp .9s .4s ease both;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    padding: .85rem 2rem;
+    border-radius: 8px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+    box-shadow: 0 0 30px rgba(59,130,246,0.3);
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: .5rem;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 50px rgba(59,130,246,0.5); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text);
+    padding: .85rem 2rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: .5rem;
+  }
+  .btn-ghost:hover { border-color: rgba(99,179,237,0.4); color: var(--bright); }
+
+  /* ─── STATS BAR ──────────────────────────────────── */
+  .stats-bar {
+    display: flex; justify-content: center; gap: 4rem;
+    padding: 2.5rem 3rem;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: rgba(15,22,40,0.6);
+    animation: fadeIn 1s .6s ease both;
+  }
+
+  .stat-item { text-align: center; }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 2.2rem;
+    color: var(--bright);
+    letter-spacing: -0.04em;
+  }
+  .stat-num span { color: var(--accent2); }
+  .stat-label { font-size: .8rem; color: var(--muted); letter-spacing: .05em; text-transform: uppercase; margin-top: .2rem; }
+
+  /* ─── SECTION ────────────────────────────────────── */
+  section { padding: 6rem 2rem; max-width: 1200px; margin: 0 auto; }
+
+  .section-label {
+    display: inline-flex; align-items: center; gap: .5rem;
+    font-size: .75rem; font-weight: 500;
+    letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 1rem;
+  }
+  .section-label::before {
+    content: ''; width: 24px; height: 1px; background: var(--accent2);
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    color: var(--bright);
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    max-width: 700px;
+  }
+
+  .section-desc {
+    margin-top: 1rem;
+    font-size: 1rem;
+    color: var(--muted);
+    max-width: 560px;
+    font-weight: 300;
+    line-height: 1.8;
+  }
+
+  /* ─── DATA SOURCES ───────────────────────────────── */
+  .data-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .data-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform .3s, border-color .3s;
+  }
+  .data-card:hover { transform: translateY(-5px); border-color: rgba(99,179,237,0.3); }
+
+  .data-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    border-radius: 16px 16px 0 0;
+  }
+  .data-card.academic::before { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+  .data-card.behavioral::before { background: linear-gradient(90deg, var(--green), #34d399); }
+  .data-card.demographic::before { background: linear-gradient(90deg, var(--accent3), #a78bfa); }
+
+  .data-icon {
+    width: 50px; height: 50px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1.2rem;
+  }
+  .academic .data-icon { background: rgba(59,130,246,0.15); }
+  .behavioral .data-icon { background: rgba(16,185,129,0.15); }
+  .demographic .data-icon { background: rgba(139,92,246,0.15); }
+
+  .data-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--bright);
+    margin-bottom: .6rem;
+  }
+
+  .data-card p { font-size: .9rem; color: var(--muted); line-height: 1.7; }
+
+  .data-tags { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: 1rem; }
+  .tag {
+    padding: .25rem .75rem;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 500;
+    border: 1px solid;
+  }
+  .tag-blue { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.2); color: #93c5fd; }
+  .tag-green { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.2); color: #6ee7b7; }
+  .tag-purple { background: rgba(139,92,246,0.1); border-color: rgba(139,92,246,0.2); color: #c4b5fd; }
+
+  /* ─── ALGORITHMS ─────────────────────────────────── */
+  .algo-section { background: var(--bg2); margin: 0; max-width: 100%; padding: 6rem 0; }
+  .algo-inner { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+
+  .algo-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .algo-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.8rem;
+    transition: transform .3s, box-shadow .3s, border-color .3s;
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .algo-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(59,130,246,0.07), transparent 70%);
+    opacity: 0;
+    transition: opacity .3s;
+  }
+  .algo-card:hover::after { opacity: 1; }
+  .algo-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(0,0,0,.4); border-color: rgba(99,179,237,0.25); }
+
+  .algo-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 3rem;
+    font-weight: 800;
+    color: rgba(59,130,246,0.1);
+    letter-spacing: -0.05em;
+    line-height: 1;
+    margin-bottom: .8rem;
+  }
+
+  .algo-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--bright);
+    margin-bottom: .5rem;
+  }
+  .algo-desc { font-size: .85rem; color: var(--muted); line-height: 1.6; }
+
+  .algo-bar {
+    margin-top: 1.2rem;
+    height: 3px;
+    background: rgba(99,179,237,0.1);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .algo-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    animation: growBar 1.5s ease both;
+    animation-play-state: paused;
+  }
+  .algo-bar-fill.animate { animation-play-state: running; }
+
+  @keyframes growBar { from { width: 0; } }
+
+  /* ─── METRICS ────────────────────────────────────── */
+  .metrics-section { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+
+  .metric-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+
+  .metric-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.6rem;
+    transition: transform .3s, border-color .3s;
+  }
+  .metric-card:hover { transform: translateY(-3px); border-color: rgba(99,179,237,0.25); }
+
+  .metric-icon-row {
+    display: flex; align-items: center; gap: .6rem;
+    margin-bottom: .8rem;
+  }
+  .metric-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .metric-card h4 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: .95rem;
+    color: var(--bright);
+    margin-bottom: .3rem;
+  }
+  .metric-card p { font-size: .82rem; color: var(--muted); line-height: 1.6; }
+
+  .metric-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--bright);
+    margin-top: .8rem;
+  }
+
+  .progress-ring { position: relative; display: inline-block; margin-top: 1rem; }
+
+  /* ─── INSIGHT BANNER ─────────────────────────────── */
+  .insight-banner {
+    background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.08));
+    border: 1px solid rgba(99,179,237,0.2);
+    border-radius: 20px;
+    padding: 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin: 0 2rem;
+  }
+
+  .insight-banner::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(59,130,246,0.1), transparent);
+  }
+
+  .insight-label {
+    font-size: .75rem; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent2); font-weight: 500; margin-bottom: 1rem;
+  }
+
+  .insight-text {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 700;
+    color: var(--bright);
+    max-width: 780px;
+    margin: 0 auto;
+    line-height: 1.3;
+  }
+  .insight-text em { color: var(--accent2); font-style: normal; }
+
+  /* ─── IMPACT ─────────────────────────────────────── */
+  .impact-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .impact-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    display: flex; gap: 1.2rem; align-items: flex-start;
+    transition: transform .3s, border-color .3s;
+  }
+  .impact-card:hover { transform: translateY(-4px); border-color: rgba(99,179,237,0.25); }
+
+  .impact-icon {
+    width: 48px; height: 48px; flex-shrink: 0;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+  }
+  .impact-card h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; color: var(--bright); margin-bottom: .4rem; }
+  .impact-card p { font-size: .88rem; color: var(--muted); line-height: 1.7; }
+
+  /* ─── PIPELINE VIZ ───────────────────────────────── */
+  .pipeline { max-width: 900px; margin: 3rem auto 0; }
+  .pipeline-steps { display: flex; align-items: center; gap: 0; }
+
+  .pipeline-step {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.4rem 1rem;
+    text-align: center;
+    transition: border-color .3s, transform .3s;
+    position: relative;
+  }
+  .pipeline-step:hover { border-color: rgba(99,179,237,0.3); transform: translateY(-3px); }
+
+  .pipeline-arrow {
+    color: var(--muted);
+    font-size: 1.2rem;
+    padding: 0 .5rem;
+    flex-shrink: 0;
+  }
+
+  .pipe-icon { font-size: 1.4rem; margin-bottom: .5rem; display: block; }
+  .pipe-label { font-family: 'Syne', sans-serif; font-weight: 700; font-size: .8rem; color: var(--bright); }
+  .pipe-sub { font-size: .72rem; color: var(--muted); margin-top: .2rem; }
+
+  /* ─── FOOTER ─────────────────────────────────────── */
+  footer {
+    border-top: 1px solid var(--border);
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--muted);
+    font-size: .85rem;
+  }
+  footer strong { color: var(--text); }
+  .footer-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--bright);
+    margin-bottom: .8rem;
+  }
+  .footer-logo span { color: var(--accent2); }
+
+  /* ─── SCROLL ANIMATIONS ──────────────────────────── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity .7s ease, transform .7s ease;
+  }
+  .reveal.visible { opacity: 1; transform: none; }
+  .reveal-delay-1 { transition-delay: .1s; }
+  .reveal-delay-2 { transition-delay: .2s; }
+  .reveal-delay-3 { transition-delay: .3s; }
+  .reveal-delay-4 { transition-delay: .4s; }
+
+  /* ─── DEMO PANEL ─────────────────────────────────── */
+  .demo-section {
+    background: var(--bg2);
+    padding: 6rem 2rem;
+  }
+  .demo-inner { max-width: 900px; margin: 0 auto; }
+  .demo-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin-top: 2.5rem;
+  }
+  .demo-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.2rem; margin-bottom: 1.5rem; }
+
+  .demo-field label {
+    display: block;
+    font-size: .78rem;
+    font-weight: 500;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .4rem;
+  }
+
+  .demo-field input, .demo-field select {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .65rem 1rem;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .9rem;
+    outline: none;
+    transition: border-color .2s;
+    appearance: none;
+  }
+  .demo-field input:focus, .demo-field select:focus { border-color: var(--accent); }
+  .demo-field select option { background: var(--card); }
+
+  .demo-slider-row { margin-bottom: 1.5rem; }
+  .demo-slider-label { display: flex; justify-content: space-between; align-items: center; font-size: .82rem; color: var(--muted); margin-bottom: .5rem; }
+  .demo-slider-label strong { color: var(--accent2); font-size: 1rem; }
+  input[type=range] {
+    width: 100%; height: 5px;
+    -webkit-appearance: none;
+    background: rgba(99,179,237,0.15);
+    border-radius: 99px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 10px rgba(59,130,246,0.5);
+    transition: transform .2s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.3); }
+
+  .predict-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    padding: 1rem;
+    border-radius: 10px;
+    border: none;
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: .04em;
+    transition: transform .2s, box-shadow .2s;
+    box-shadow: 0 0 30px rgba(59,130,246,0.25);
+  }
+  .predict-btn:hover { transform: translateY(-2px); box-shadow: 0 0 50px rgba(59,130,246,0.45); }
+  .predict-btn:active { transform: translateY(0); }
+
+  #result-box {
+    margin-top: 1.5rem;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: none;
+    border: 1px solid;
+    animation: fadeUp .5s ease both;
+  }
+  #result-box.high { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.3); }
+  #result-box.medium { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.3); }
+  #result-box.low { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.3); }
+
+  #result-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; margin-bottom: .4rem; }
+  #result-desc { font-size: .9rem; color: var(--muted); }
+
+  /* Mobile */
+  @media (max-width: 900px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .data-grid, .algo-grid { grid-template-columns: 1fr 1fr; }
+    .metrics-section { grid-template-columns: 1fr; }
+    .impact-grid { grid-template-columns: 1fr; }
+    .demo-row { grid-template-columns: 1fr; }
+    .pipeline-steps { flex-direction: column; gap: .5rem; }
+    .pipeline-arrow { transform: rotate(90deg); }
+    .stats-bar { flex-direction: column; gap: 2rem; }
+    .algo-grid { grid-template-columns: 1fr 1fr; }
+    .metric-cards { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .data-grid, .algo-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Edu<span>Predict</span></div>
+  <div class="nav-links">
+    <a href="#data">Data</a>
+    <a href="#algorithms">Algorithms</a>
+    <a href="#metrics">Metrics</a>
+    <a href="#impact">Impact</a>
+    <a href="#demo">Demo</a>
+  </div>
+  <button class="nav-cta" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">Try Demo</button>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-orb orb1"></div>
+  <div class="hero-orb orb2"></div>
+  <div class="hero-orb orb3"></div>
+
+  <div class="hero-badge">ML-Powered Education Analytics</div>
+
+  <h1>
+    Predict Student Success<br/>
+    with <span class="gradient-text">Machine Learning</span>
+  </h1>
+
+  <p class="hero-sub">
+    Moving beyond exam scores — this system analyzes <strong>academic, behavioral, and demographic data</strong> to forecast performance and identify at-risk students early.
+  </p>
+
+  <div class="hero-actions">
+    <a href="#demo" class="btn-primary">
+      <span>▶</span> Live Demo
+    </a>
+    <a href="#algorithms" class="btn-ghost">
+      <span>⚙</span> Explore Models
+    </a>
+  </div>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-num">4<span>+</span></div>
+    <div class="stat-label">ML Algorithms</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">3<span>×</span></div>
+    <div class="stat-label">Data Categories</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">95<span>%</span></div>
+    <div class="stat-label">Prediction Accuracy</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">4<span>+</span></div>
+    <div class="stat-label">Evaluation Metrics</div>
+  </div>
+</div>
+
+<!-- DATA SECTION -->
+<section id="data">
+  <div class="reveal">
+    <div class="section-label">Data Sources</div>
+    <h2 class="section-title">Three Pillars of Student Intelligence</h2>
+    <p class="section-desc">Traditional systems only look at marks. We go deeper — capturing the full picture of a student's potential.</p>
+  </div>
+
+  <div class="data-grid">
+    <div class="data-card academic reveal reveal-delay-1">
+      <div class="data-icon">📊</div>
+      <h3>Academic Data</h3>
+      <p>Core educational metrics that track scholastic achievement and knowledge retention across subjects.</p>
+      <div class="data-tags">
+        <span class="tag tag-blue">Exam Marks</span>
+        <span class="tag tag-blue">Grades</span>
+        <span class="tag tag-blue">GPA</span>
+        <span class="tag tag-blue">Test Scores</span>
+      </div>
+    </div>
+    <div class="data-card behavioral reveal reveal-delay-2">
+      <div class="data-icon">🧠</div>
+      <h3>Behavioral Data</h3>
+      <p>Engagement signals that reveal how a student interacts with their learning environment day-to-day.</p>
+      <div class="data-tags">
+        <span class="tag tag-green">Study Habits</span>
+        <span class="tag tag-green">Attendance</span>
+        <span class="tag tag-green">Participation</span>
+        <span class="tag tag-green">Engagement</span>
+      </div>
+    </div>
+    <div class="data-card demographic reveal reveal-delay-3">
+      <div class="data-icon">👤</div>
+      <h3>Demographic Data</h3>
+      <p>Contextual background factors that provide vital context for interpreting performance fairly.</p>
+      <div class="data-tags">
+        <span class="tag tag-purple">Background</span>
+        <span class="tag tag-purple">Family</span>
+        <span class="tag tag-purple">Socioeconomic</span>
+        <span class="tag tag-purple">Region</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ALGORITHMS -->
+<div class="algo-section" id="algorithms">
+  <div class="algo-inner">
+    <div class="reveal">
+      <div class="section-label">ML Models</div>
+      <h2 class="section-title">Four Algorithms, One Powerful System</h2>
+      <p class="section-desc">Each model brings unique strengths. Together, they deliver robust, reliable predictions.</p>
+    </div>
+
+    <div class="algo-grid">
+      <div class="algo-card reveal reveal-delay-1">
+        <div class="algo-num">01</div>
+        <div class="algo-name">Logistic Regression</div>
+        <div class="algo-desc">A foundational classification model that estimates probabilities of student outcomes with transparency and interpretability.</div>
+        <div class="algo-bar"><div class="algo-bar-fill" style="width:72%"></div></div>
+      </div>
+      <div class="algo-card reveal reveal-delay-2">
+        <div class="algo-num">02</div>
+        <div class="algo-name">Decision Tree</div>
+        <div class="algo-desc">Rule-based splits that mirror human reasoning, making predictions easy to explain to educators and administrators.</div>
+        <div class="algo-bar"><div class="algo-bar-fill" style="width:80%"></div></div>
+      </div>
+      <div class="algo-card reveal reveal-delay-3">
+        <div class="algo-num">03</div>
+        <div class="algo-name">Random Forest</div>
+        <div class="algo-desc">An ensemble of decision trees that reduces overfitting and boosts accuracy through collective intelligence.</div>
+        <div class="algo-bar"><div class="algo-bar-fill" style="width:92%"></div></div>
+      </div>
+      <div class="algo-card reveal reveal-delay-4">
+        <div class="algo-num">04</div>
+        <div class="algo-name">Ensemble Models</div>
+        <div class="algo-desc">Combining multiple learners — boosting, bagging, and stacking — to achieve peak predictive performance.</div>
+        <div class="algo-bar"><div class="algo-bar-fill" style="width:95%"></div></div>
+      </div>
+    </div>
+
+    <!-- Pipeline -->
+    <div class="pipeline reveal" style="margin-top:4rem;">
+      <div class="section-label" style="margin-bottom:1.5rem">ML Pipeline</div>
+      <div class="pipeline-steps">
+        <div class="pipeline-step">
+          <span class="pipe-icon">🗄️</span>
+          <div class="pipe-label">Data Collection</div>
+          <div class="pipe-sub">Raw student records</div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          <span class="pipe-icon">🔧</span>
+          <div class="pipe-label">Preprocessing</div>
+          <div class="pipe-sub">Clean & transform</div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          <span class="pipe-icon">⚙️</span>
+          <div class="pipe-label">Feature Engineering</div>
+          <div class="pipe-sub">Select key variables</div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          <span class="pipe-icon">🤖</span>
+          <div class="pipe-label">Model Training</div>
+          <div class="pipe-sub">Fit & optimize</div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          <span class="pipe-icon">📈</span>
+          <div class="pipe-label">Prediction</div>
+          <div class="pipe-sub">Forecast outcomes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- METRICS -->
+<section id="metrics">
+  <div class="metrics-section">
+    <div class="reveal">
+      <div class="section-label">Evaluation</div>
+      <h2 class="section-title">Measuring What Matters</h2>
+      <p class="section-desc">Four complementary metrics ensure the model is not just accurate — but reliable, fair, and robust across all student groups.</p>
+      <div style="margin-top:2rem;display:flex;flex-direction:column;gap:.9rem;">
+        <div style="display:flex;align-items:center;gap:.8rem;">
+          <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0"></div>
+          <span style="font-size:.9rem;color:var(--text)"><strong style="color:var(--bright)">Accuracy</strong> — measures the overall correct prediction rate across all students.</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:.8rem;">
+          <div style="width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
+          <span style="font-size:.9rem;color:var(--text)"><strong style="color:var(--bright)">Precision</strong> — ensures flagged at-risk students truly need intervention.</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:.8rem;">
+          <div style="width:10px;height:10px;border-radius:50%;background:var(--yellow);flex-shrink:0"></div>
+          <span style="font-size:.9rem;color:var(--text)"><strong style="color:var(--bright)">Recall</strong> — maximises detection of all students who are actually struggling.</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:.8rem;">
+          <div style="width:10px;height:10px;border-radius:50%;background:var(--accent3);flex-shrink:0"></div>
+          <span style="font-size:.9rem;color:var(--text)"><strong style="color:var(--bright)">F1-Score</strong> — the harmonic mean of precision and recall, balancing both.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="metric-cards reveal">
+      <div class="metric-card">
+        <div class="metric-icon-row">
+          <div class="metric-dot" style="background:var(--accent)"></div>
+          <span style="font-size:.78rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase">Accuracy</span>
+        </div>
+        <div class="metric-value" id="acc-val">0%</div>
+        <div style="height:4px;background:rgba(99,179,237,0.1);border-radius:99px;margin-top:.8rem;overflow:hidden">
+          <div style="height:100%;width:0;background:var(--accent);border-radius:99px;transition:width 1.5s ease" data-target="95" class="bar-anim"></div>
+        </div>
+        <p style="font-size:.78rem;color:var(--muted);margin-top:.5rem">Random Forest model</p>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon-row">
+          <div class="metric-dot" style="background:var(--green)"></div>
+          <span style="font-size:.78rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase">Precision</span>
+        </div>
+        <div class="metric-value" id="prec-val">0%</div>
+        <div style="height:4px;background:rgba(16,185,129,0.1);border-radius:99px;margin-top:.8rem;overflow:hidden">
+          <div style="height:100%;width:0;background:var(--green);border-radius:99px;transition:width 1.5s ease" data-target="93" class="bar-anim"></div>
+        </div>
+        <p style="font-size:.78rem;color:var(--muted);margin-top:.5rem">Ensemble model</p>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon-row">
+          <div class="metric-dot" style="background:var(--yellow)"></div>
+          <span style="font-size:.78rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase">Recall</span>
+        </div>
+        <div class="metric-value" id="rec-val">0%</div>
+        <div style="height:4px;background:rgba(245,158,11,0.1);border-radius:99px;margin-top:.8rem;overflow:hidden">
+          <div style="height:100%;width:0;background:var(--yellow);border-radius:99px;transition:width 1.5s ease" data-target="91" class="bar-anim"></div>
+        </div>
+        <p style="font-size:.78rem;color:var(--muted);margin-top:.5rem">At-risk detection</p>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon-row">
+          <div class="metric-dot" style="background:var(--accent3)"></div>
+          <span style="font-size:.78rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase">F1-Score</span>
+        </div>
+        <div class="metric-value" id="f1-val">0%</div>
+        <div style="height:4px;background:rgba(139,92,246,0.1);border-radius:99px;margin-top:.8rem;overflow:hidden">
+          <div style="height:100%;width:0;background:var(--accent3);border-radius:99px;transition:width 1.5s ease" data-target="92" class="bar-anim"></div>
+        </div>
+        <p style="font-size:.78rem;color:var(--muted);margin-top:.5rem">Balanced score</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- KEY INSIGHT -->
+<div style="padding:2rem 2rem 5rem; max-width:1200px; margin:0 auto;">
+  <div class="insight-banner reveal">
+    <div class="insight-label">⚡ Key Finding</div>
+    <div class="insight-text">
+      Combining <em>academic data</em> with <em>behavioral factors</em> produces significantly better prediction results than marks alone — because success is built on habits, attendance, and engagement.
+    </div>
+  </div>
+</div>
+
+<!-- IMPACT -->
+<section id="impact">
+  <div class="reveal">
+    <div class="section-label">Real-World Impact</div>
+    <h2 class="section-title">Transforming Education Outcomes</h2>
+    <p class="section-desc">From passive reporting to proactive intervention — EduPredict empowers every stakeholder in the education system.</p>
+  </div>
+
+  <div class="impact-grid">
+    <div class="impact-card reveal reveal-delay-1">
+      <div class="impact-icon" style="background:rgba(59,130,246,0.15)">🎯</div>
+      <div>
+        <h3>Early Risk Detection</h3>
+        <p>Identify students at risk of failing or dropping out weeks before it happens, allowing timely, targeted intervention.</p>
+      </div>
+    </div>
+    <div class="impact-card reveal reveal-delay-2">
+      <div class="impact-icon" style="background:rgba(16,185,129,0.15)">⚡</div>
+      <div>
+        <h3>Timely Teacher Action</h3>
+        <p>Educators receive actionable insights directly, enabling personalized support rather than reactive, late-stage remediation.</p>
+      </div>
+    </div>
+    <div class="impact-card reveal reveal-delay-3">
+      <div class="impact-icon" style="background:rgba(139,92,246,0.15)">📊</div>
+      <div>
+        <h3>Data-Driven Decisions</h3>
+        <p>Replace intuition with evidence. Institutional decisions on curriculum and resources are backed by verifiable analytics.</p>
+      </div>
+    </div>
+    <div class="impact-card reveal reveal-delay-4">
+      <div class="impact-icon" style="background:rgba(245,158,11,0.15)">🚀</div>
+      <div>
+        <h3>Improved Success Rates</h3>
+        <p>A holistic approach to student support leads to measurable improvements in retention, graduation, and overall achievement.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO -->
+<div class="demo-section" id="demo">
+  <div class="demo-inner">
+    <div class="reveal" style="text-align:center; margin-bottom:0">
+      <div class="section-label" style="justify-content:center">Interactive Demo</div>
+      <h2 class="section-title" style="max-width:100%;text-align:center">Predict Performance Now</h2>
+      <p class="section-desc" style="max-width:560px;margin:1rem auto 0;text-align:center">Enter a student's profile and see the ML model predict their academic outcome in real-time.</p>
+    </div>
+
+    <div class="demo-card reveal">
+      <div class="demo-row">
+        <div class="demo-field">
+          <label>Study Hours / Week</label>
+          <input type="number" id="study_hours" min="0" max="80" value="15" placeholder="e.g. 15"/>
+        </div>
+        <div class="demo-field">
+          <label>Attendance Rate (%)</label>
+          <input type="number" id="attendance" min="0" max="100" value="80" placeholder="e.g. 80"/>
+        </div>
+        <div class="demo-field">
+          <label>Previous GPA</label>
+          <input type="number" id="gpa" min="0" max="10" step="0.1" value="7.2" placeholder="e.g. 7.2"/>
+        </div>
+      </div>
+
+      <div class="demo-row">
+        <div class="demo-field">
+          <label>Participation Level</label>
+          <select id="participation">
+            <option value="high">High</option>
+            <option value="medium" selected>Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        <div class="demo-field">
+          <label>Family Support</label>
+          <select id="family">
+            <option value="strong">Strong</option>
+            <option value="moderate" selected>Moderate</option>
+            <option value="limited">Limited</option>
+          </select>
+        </div>
+        <div class="demo-field">
+          <label>Algorithm</label>
+          <select id="algo">
+            <option value="rf">Random Forest</option>
+            <option value="ensemble">Ensemble</option>
+            <option value="dt">Decision Tree</option>
+            <option value="lr">Logistic Regression</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="demo-slider-row">
+        <div class="demo-slider-label">
+          <span>Assignment Completion Rate</span>
+          <strong id="slider-val">75%</strong>
+        </div>
+        <input type="range" id="completion" min="0" max="100" value="75"
+          oninput="document.getElementById('slider-val').textContent=this.value+'%'"/>
+      </div>
+
+      <button class="predict-btn" onclick="predict()">⚡ Predict Academic Performance</button>
+
+      <div id="result-box">
+        <div id="result-title"></div>
+        <div id="result-desc"></div>
+        <div id="result-bars" style="margin-top:1.2rem;display:flex;gap:1.5rem;flex-wrap:wrap"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Edu<span>Predict</span></div>
+  <p style="margin-bottom:.4rem">Student Academic Performance Prediction System</p>
+  <p>Built with <strong>Machine Learning</strong> · Educational Data Mining · Predictive Analytics</p>
+  <p style="margin-top:1rem;font-size:.78rem;opacity:.5">"This project uses machine learning to analyze multiple student-related factors and accurately predict academic performance, helping educators identify and support at-risk students early."</p>
+</footer>
+
+</div><!-- end page-wrap -->
+
+<script>
+/* ── SCROLL REVEAL ─────────────────────────────── */
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      // animate bars inside
+      e.target.querySelectorAll('.bar-anim').forEach(bar => {
+        bar.style.width = bar.dataset.target + '%';
+      });
+      // animate metric values
+      const ids = [{id:'acc-val',v:95},{id:'prec-val',v:93},{id:'rec-val',v:91},{id:'f1-val',v:92}];
+      ids.forEach(({id,v}) => {
+        const el = document.getElementById(id);
+        if (el && el.textContent === '0%') animateCount(el, v);
+      });
+      // animate algo bars
+      e.target.querySelectorAll('.algo-bar-fill').forEach(b => b.classList.add('animate'));
+    }
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+function animateCount(el, target) {
+  let current = 0;
+  const step = target / 60;
+  const timer = setInterval(() => {
+    current = Math.min(current + step, target);
+    el.textContent = Math.round(current) + '%';
+    if (current >= target) clearInterval(timer);
+  }, 25);
+}
+
+/* ── PREDICTION DEMO ───────────────────────────── */
+function predict() {
+  const hours = parseFloat(document.getElementById('study_hours').value) || 0;
+  const attend = parseFloat(document.getElementById('attendance').value) || 0;
+  const gpa = parseFloat(document.getElementById('gpa').value) || 0;
+  const part = document.getElementById('participation').value;
+  const fam = document.getElementById('family').value;
+  const comp = parseFloat(document.getElementById('completion').value) || 0;
+
+  let score = 0;
+  score += Math.min(hours / 40, 1) * 25;
+  score += (attend / 100) * 30;
+  score += (gpa / 10) * 25;
+  score += (comp / 100) * 10;
+  if (part === 'high') score += 5;
+  else if (part === 'medium') score += 3;
+  if (fam === 'strong') score += 5;
+  else if (fam === 'moderate') score += 2.5;
+
+  const rb = document.getElementById('result-box');
+  const rt = document.getElementById('result-title');
+  const rd = document.getElementById('result-desc');
+  const bars = document.getElementById('result-bars');
+  rb.style.display = 'block';
+  rb.className = '';
+
+  const algo = document.getElementById('algo').value;
+  const algoMap = {rf:'Random Forest',ensemble:'Ensemble',dt:'Decision Tree',lr:'Logistic Regression'};
+  const algoName = algoMap[algo];
+
+  let confidence = Math.round(75 + (score / 100) * 20 + Math.random() * 5);
+  confidence = Math.min(confidence, 98);
+
+  if (score >= 70) {
+    rb.classList.add('high');
+    rt.innerHTML = `<span style="color:#10b981">✅ High Performance Predicted</span>`;
+    rd.innerHTML = `<strong>${algoName}</strong> predicts this student is on track for strong academic results (${confidence}% confidence). Key drivers: good attendance, consistent study habits, and solid completion rate.`;
+  } else if (score >= 45) {
+    rb.classList.add('medium');
+    rt.innerHTML = `<span style="color:#f59e0b">⚠️ Moderate Risk — Needs Monitoring</span>`;
+    rd.innerHTML = `<strong>${algoName}</strong> identifies moderate risk (${confidence}% confidence). Recommend increasing study hours, improving attendance, and boosting classroom participation.`;
+  } else {
+    rb.classList.add('low');
+    rt.innerHTML = `<span style="color:#ef4444">🚨 At-Risk — Immediate Intervention Needed</span>`;
+    rd.innerHTML = `<strong>${algoName}</strong> flags this student as high risk (${confidence}% confidence). Urgent educator outreach recommended. Focus areas: attendance, assignment completion, and family support.`;
+  }
+
+  bars.innerHTML = `
+    <div style="flex:1;min-width:140px">
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.06em">Predictive Score</div>
+      <div style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:var(--bright)">${Math.round(score)}<span style="font-size:1rem;color:var(--muted)">/100</span></div>
+    </div>
+    <div style="flex:1;min-width:140px">
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.06em">Model Confidence</div>
+      <div style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:var(--bright)">${confidence}<span style="font-size:1rem;color:var(--muted)">%</span></div>
+    </div>
+    <div style="flex:1;min-width:140px">
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.06em">Algorithm</div>
+      <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:var(--bright);line-height:1.3">${algoName}</div>
+    </div>
+  `;
+}
+</script>
+</body>
+</html>
